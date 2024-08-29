@@ -16,6 +16,7 @@ class Agent():
         self.max_force = 0.02
         self.rastro = []
         self.max_rastro = 200
+        self.arrival_distance = 100
 
     def draw(self, screen):
     
@@ -34,9 +35,19 @@ class Agent():
         if steering.length() > self.max_force:
             return self.normalize(steering) * self.max_force
         return steering
+    
+    def map_value(self, value, start1, stop1, start2, stop2):
+        return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1))
 
     def seek(self, target):
-        desired = self.normalize(target - self.position) * self.max_speed
+        desired = target - self.position
+        distance = math.hypot(desired.x, desired.y)
+        if distance < self.arrival_distance:
+            m = self.map_value(distance, 0, self.arrival_distance, 0, self.max_speed)
+            desired = self.normalize(desired) * m
+        else:
+            desired = self.normalize(desired) * self.max_speed
+
         steering = self.limit_force(desired - self.velocity)
         self.velocity += steering
         self.position += self.velocity
